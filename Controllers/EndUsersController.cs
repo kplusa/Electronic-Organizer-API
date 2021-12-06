@@ -12,6 +12,8 @@ using Electronic_Organizer_API.Dto;
 using Newtonsoft.Json;
 using Microsoft.Data.SqlClient;
 using Dapper;
+using Electronic_Organizer_API.Security;
+using System.Data;
 
 namespace Electronic_Organizer_API.Controllers
 {
@@ -20,14 +22,11 @@ namespace Electronic_Organizer_API.Controllers
     public class EndUsersController : ControllerBase
     {
         private readonly ElectronicOrganizerContext _context;
-        private readonly UserManager<EndUser> _userManager;
-        //private readonly RoleManager<IdentityRole> roleManager;
         private readonly IConfiguration _configuration;
 
-        public EndUsersController(ElectronicOrganizerContext context, UserManager<EndUser> userManager, IConfiguration configuration)
+        public EndUsersController(ElectronicOrganizerContext context, IConfiguration configuration)
         {
             _context = context;
-            _userManager = userManager;
             _configuration = configuration;
         }
 
@@ -52,98 +51,39 @@ namespace Electronic_Organizer_API.Controllers
             return endUser;
         }
 
-        // PUT: api/EndUsers/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEndUser(int id, EndUser endUser)
-        {
-            if (id != endUser.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(endUser).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EndUserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/EndUsers
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<EndUser>> PostEndUser(EndUser endUser)
-        {
-            _context.EndUsers.Add(endUser);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetEndUser", new { id = endUser.Id }, endUser);
-        }
-
-        // DELETE: api/EndUsers/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEndUser(int id)
-        {
-            var endUser = await _context.EndUsers.FindAsync(id);
-            if (endUser == null)
-            {
-                return NotFound();
-            }
-
-            _context.EndUsers.Remove(endUser);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool EndUserExists(int id)
-        {
-            return _context.EndUsers.Any(e => e.Id == id);
-        }
-
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] AuthDto model)
         {
-            //string sql = $"EXEC eo_get_user_by_email @email= {model.Email}";
-            var userExists = await _userManager.FindByNameAsync(model.Email);
-            if (userExists != null)
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+
+            string sql = $"EXEC eo_get_user_by_email @email= '{model.Email}'";
+            var res = connection.Query<string>(sql);
+            if (res.Any())
                 return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = "User already exists!" });
-            EndUser user = new()
+            var user = new EndUser()
             {
                 Email = model.Email,
                 Avatar = model.Avatar,
             };
             _context.EndUsers.Add(user);
-            _ = await _context.SaveChangesAsync();
-            _ = await _userManager.FindByNameAsync(model.Email);
-            //using SqlConnection connection = new(_context.Database.GetConnectionString());
-            //var res = connection.Query<string>(sql);
-            //var userData = JsonConvert.DeserializeObject<List<EndUser>>(res.First());
-            //_context.EndUserSecurities.Add(new EndUserSecurity
-            //{
-            //    Salt = salt,
-            //    HashedPassword = hashed,
-            //    EndUserId = userData.First().Id
-            //}
-            //           );
             await _context.SaveChangesAsync();
-            var resultt = await _userManager.CreateAsync(user, model.Password);
-            if (!resultt.Succeeded)
+
+            var passwordHashing = new PasswordHashing();
+            var salt = passwordHashing.CreateSalt();
+            var hashed = passwordHashing.GenerateHash(model.Password, salt);
+            res = connection.Query<string>(sql);
+            var fullResult = string.Concat(res);
+            var userData = JsonConvert.DeserializeObject<List<EndUser>>(fullResult);
+            _context.EndUserSecurities.Add(new EndUserSecurity
+            {
+                Salt = salt,
+                HashedPassword = hashed,
+                EndUserId = userData.First().Id
+            });
+            _context.Timetables.Add(new Timetable { EndUserId = userData.First().Id });
+            var result = await _context.SaveChangesAsync();
+            if (result == 0)
                 return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = "User creation failed! Please check user details and try again." });
             return Ok(new ResponseDto { Status = "Success", Message = "User created successfully!" });
         }

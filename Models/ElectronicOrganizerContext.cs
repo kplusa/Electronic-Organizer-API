@@ -92,9 +92,14 @@ namespace Electronic_Organizer_API.Models
                 entity.Property(e => e.HashedPassword)
                     .IsRequired()
                     .HasMaxLength(255)
+                    .IsUnicode(false)
                     .HasColumnName("hashed_password");
 
-                entity.Property(e => e.Salt).HasColumnName("salt");
+                entity.Property(e => e.Salt)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false)
+                    .HasColumnName("salt");
 
                 entity.HasOne(d => d.EndUser)
                     .WithMany(p => p.EndUserSecurities)
