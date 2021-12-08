@@ -1,4 +1,5 @@
 using Electronic_Organizer_API.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -8,10 +9,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Electronic_Organizer_API
@@ -29,11 +32,63 @@ namespace Electronic_Organizer_API
         public void ConfigureServices(IServiceCollection services)
         {
             var connection = Configuration.GetConnectionString("localDb");
-            services.AddDbContext<ElectronicOrganizerContext>(options =>options.UseSqlServer(connection));
+            services.AddCors(options =>
+            {
+                options.AddPolicy("Policy", builder =>
+                {
+                    builder.WithOrigins("*").WithMethods("PUT", "GET", "DELETE", "POST", "OPTIONS").AllowAnyHeader();
+                });
+            });
+            services.AddDbContext<ElectronicOrganizerContext>(options => options.UseSqlServer(connection));
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Electronic_Organizer_API", Version = "v1" });
+                // To Enable authorization using Swagger (JWT)
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter 'Bearer' [space] and then your valid token\n",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                            },
+                        Array.Empty<string>()
+                    }
+                });
+            });
+            // Adding Authentication
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            // Adding Jwt Bearer
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = Configuration["Jwt:ValidAudience"],
+                    ValidIssuer = Configuration["Jwt:ValidIssuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:SecretKey"]))
+                };
             });
         }
 
@@ -46,12 +101,13 @@ namespace Electronic_Organizer_API
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Electronic_Organizer_API v1"));
             }
-
-            app.UseHttpsRedirection();
+            app.UseCors("Policy");
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
