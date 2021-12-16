@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-
-#nullable disable
 
 namespace Electronic_Organizer_API.Models
 {
@@ -27,8 +26,6 @@ namespace Electronic_Organizer_API.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("Relational:Collation", "Polish_CI_AS");
-
             modelBuilder.Entity<Day>(entity =>
             {
                 entity.ToTable("day");
@@ -52,20 +49,20 @@ namespace Electronic_Organizer_API.Models
                     .WithMany(p => p.DayOfTimetables)
                     .HasForeignKey(d => d.DayId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__day_of_ti__day_i__00200768");
+                    .HasConstraintName("FK__day_of_ti__day_i__55009F39");
 
                 entity.HasOne(d => d.Timetable)
                     .WithMany(p => p.DayOfTimetables)
                     .HasForeignKey(d => d.TimetableId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__day_of_ti__timet__01142BA1");
+                    .HasConstraintName("FK__day_of_ti__timet__55F4C372");
             });
 
             modelBuilder.Entity<EndUser>(entity =>
             {
                 entity.ToTable("end_user");
 
-                entity.HasIndex(e => e.Email, "UQ__end_user__AB6E6164E77C173A")
+                entity.HasIndex(e => e.Email, "UQ__end_user__AB6E6164707D2203")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
@@ -90,13 +87,11 @@ namespace Electronic_Organizer_API.Models
                 entity.Property(e => e.EndUserId).HasColumnName("end_user_id");
 
                 entity.Property(e => e.HashedPassword)
-                    .IsRequired()
                     .HasMaxLength(255)
                     .IsUnicode(false)
                     .HasColumnName("hashed_password");
 
                 entity.Property(e => e.Salt)
-                    .IsRequired()
                     .HasMaxLength(255)
                     .IsUnicode(false)
                     .HasColumnName("salt");
@@ -105,7 +100,7 @@ namespace Electronic_Organizer_API.Models
                     .WithMany(p => p.EndUserSecurities)
                     .HasForeignKey(d => d.EndUserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__end_user___end_u__787EE5A0");
+                    .HasConstraintName("FK__end_user___end_u__4D5F7D71");
             });
 
             modelBuilder.Entity<Event>(entity =>
@@ -131,19 +126,19 @@ namespace Electronic_Organizer_API.Models
                     .WithMany(p => p.Events)
                     .HasForeignKey(d => d.DayOfTimetableId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__event__day_of_ti__06CD04F7");
+                    .HasConstraintName("FK__event__day_of_ti__5BAD9CC8");
 
                 entity.HasOne(d => d.Service)
                     .WithMany(p => p.Events)
                     .HasForeignKey(d => d.ServiceId)
-                    .HasConstraintName("FK__event__service_i__07C12930");
+                    .HasConstraintName("FK__event__service_i__5CA1C101");
             });
 
             modelBuilder.Entity<Service>(entity =>
             {
                 entity.ToTable("service");
 
-                entity.HasIndex(e => e.Name, "UQ__service__72E12F1B2D6E1030")
+                entity.HasIndex(e => e.Name, "UQ__service__72E12F1B89136E6B")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
@@ -174,7 +169,7 @@ namespace Electronic_Organizer_API.Models
                     .WithMany(p => p.Timetables)
                     .HasForeignKey(d => d.EndUserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__timetable__end_u__7B5B524B");
+                    .HasConstraintName("FK__timetable__end_u__503BEA1C");
             });
 
             OnModelCreatingPartial(modelBuilder);

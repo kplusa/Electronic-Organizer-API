@@ -90,6 +90,7 @@ namespace Electronic_Organizer_API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:SecretKey"]))
                 };
             });
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

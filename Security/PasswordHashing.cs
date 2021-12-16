@@ -21,7 +21,7 @@ namespace Electronic_Organizer_API.Security
         }
         public string CreateSalt()
         {
-            RNGCryptoServiceProvider rng = new();
+            var rng = RandomNumberGenerator.Create();
             byte[] buff = new byte[32];
             rng.GetBytes(buff);
             return Convert.ToBase64String(buff);
