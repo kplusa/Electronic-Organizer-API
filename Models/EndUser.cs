@@ -8,6 +8,7 @@ namespace Electronic_Organizer_API.Models
         public EndUser()
         {
             EndUserSecurities = new HashSet<EndUserSecurity>();
+            Services = new HashSet<Service>();
             Timetables = new HashSet<Timetable>();
         }
 
@@ -16,6 +17,7 @@ namespace Electronic_Organizer_API.Models
         public string Avatar { get; set; }
 
         public virtual ICollection<EndUserSecurity> EndUserSecurities { get; set; }
+        public virtual ICollection<Service> Services { get; set; }
         public virtual ICollection<Timetable> Timetables { get; set; }
     }
 }

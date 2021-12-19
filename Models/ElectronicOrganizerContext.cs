@@ -138,15 +138,14 @@ namespace Electronic_Organizer_API.Models
             {
                 entity.ToTable("service");
 
-                entity.HasIndex(e => e.Name, "UQ__service__72E12F1B89136E6B")
-                    .IsUnique();
-
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Code)
                     .HasMaxLength(6)
                     .IsUnicode(false)
                     .HasColumnName("code");
+
+                entity.Property(e => e.EndUserId).HasColumnName("end_user_id");
 
                 entity.Property(e => e.EstimatedTime).HasColumnName("estimated_time");
 
@@ -155,6 +154,11 @@ namespace Electronic_Organizer_API.Models
                     .HasMaxLength(255)
                     .IsUnicode(false)
                     .HasColumnName("name");
+
+                entity.HasOne(d => d.EndUser)
+                    .WithMany(p => p.Services)
+                    .HasForeignKey(d => d.EndUserId)
+                    .HasConstraintName("FK__service__end_use__74794A92");
             });
 
             modelBuilder.Entity<Timetable>(entity =>

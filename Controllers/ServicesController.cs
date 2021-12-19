@@ -6,9 +6,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Electronic_Organizer_API.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Electronic_Organizer_API.Dto;
+using Microsoft.Data.SqlClient;
+using Dapper;
 
 namespace Electronic_Organizer_API.Controllers
 {
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]")]
     [ApiController]
     public class ServicesController : ControllerBase
@@ -21,10 +27,20 @@ namespace Electronic_Organizer_API.Controllers
         }
 
         // GET: api/Services
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Service>>> GetServices()
+        [HttpPost]
+        public async Task<IActionResult> GetServices([FromBody] ServiceDto model)
         {
-            return await _context.Services.ToListAsync();
+            string sqlcmd = $"EXEC eo_services_select @user_mail='{model.UserMail}'";
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+            var result = await connection.QueryAsync<string>(sqlcmd);
+            var fullResult = string.Concat(result);
+
+            if (result.Any())
+            {
+                var services = fullResult;
+                return Ok(services);
+            }
+            return NoContent();
         }
 
         // GET: api/Services/5
@@ -73,15 +89,15 @@ namespace Electronic_Organizer_API.Controllers
         }
 
         // POST: api/Services
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Service>> PostService(Service service)
-        {
-            _context.Services.Add(service);
-            await _context.SaveChangesAsync();
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPost]
+        //public async Task<ActionResult<Service>> PostService(Service service)
+        //{
+        //    _context.Services.Add(service);
+        //    await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetService", new { id = service.Id }, service);
-        }
+        //    return CreatedAtAction("GetService", new { id = service.Id }, service);
+        //}
 
         // DELETE: api/Services/5
         [HttpDelete("{id}")]
