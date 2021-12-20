@@ -14,7 +14,7 @@ using Dapper;
 
 namespace Electronic_Organizer_API.Controllers
 {
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]")]
     [ApiController]
     public class ServicesController : ControllerBase
@@ -26,8 +26,9 @@ namespace Electronic_Organizer_API.Controllers
             _context = context;
         }
 
-        // GET: api/Services
+        // Post: api/Services/list-services
         [HttpPost]
+        [Route("list-services")]
         public async Task<IActionResult> GetServices([FromBody] ServiceDto model)
         {
             string sqlcmd = $"EXEC eo_services_select @user_mail='{model.UserMail}'";
@@ -38,55 +39,55 @@ namespace Electronic_Organizer_API.Controllers
             if (result.Any())
             {
                 var services = fullResult;
-                return Ok(services);
+                return Ok(new ResponseDto { Status = "Success", Message = "Successfully list services!", Data = services });
             }
             return NoContent();
         }
-
-        // GET: api/Services/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Service>> GetService(int id)
+        // Post: api/Services/
+        [HttpPost]
+        public async Task<IActionResult> AddService([FromBody] ServiceDto model)
         {
-            var service = await _context.Services.FindAsync(id);
+            string sqlcmd = $"EXEC eo_services_insert @title='{model.Title}', @estimated_time= {model.EstimatedTime}, @service_code='{model.ServiceCode}', @user_mail='{model.UserMail}'";
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+            var result = await connection.QueryAsync<string>(sqlcmd);
+            var fullResult = string.Concat(result);
 
-            if (service == null)
-            {
-                return NotFound();
-            }
-
-            return service;
+            if (fullResult=="Success")
+                return Ok(new ResponseDto { Status = "Success", Message = fullResult });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = fullResult});
         }
+
 
         // PUT: api/Services/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutService(int id, Service service)
-        {
-            if (id != service.Id)
-            {
-                return BadRequest();
-            }
+        //[HttpPut]
+        //public async Task<IActionResult> PutService([FromBody] ServiceDto model)
+        //{
+        //    if (id != service.Id)
+        //    {
+        //        return BadRequest();
+        //    }
 
-            _context.Entry(service).State = EntityState.Modified;
+        //    _context.Entry(service).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ServiceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!ServiceExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
         // POST: api/Services
         //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -106,7 +107,7 @@ namespace Electronic_Organizer_API.Controllers
             var service = await _context.Services.FindAsync(id);
             if (service == null)
             {
-                return NotFound();
+                return NotFound(new ResponseDto { Status = "Error", Message = "Service not found." });
             }
 
             _context.Services.Remove(service);
