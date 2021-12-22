@@ -6,5 +6,6 @@
         public string Title { get; set; }
         public int EstimatedTime { get; set; }
         public string ServiceCode { get; set; }
+        public int ServiceId {get; set; }
     }
 }

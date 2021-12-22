@@ -58,36 +58,19 @@ namespace Electronic_Organizer_API.Controllers
         }
 
 
-        // PUT: api/Services/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut]
-        //public async Task<IActionResult> PutService([FromBody] ServiceDto model)
-        //{
-        //    if (id != service.Id)
-        //    {
-        //        return BadRequest();
-        //    }
+        //PUT: api/Services/
+        [HttpPut]
+        public async Task<IActionResult> PutService([FromBody] ServiceDto model)
+        {
+            string sqlcmd = $"EXEC eo_services_update @title=@Title, @estimated_time= {model.EstimatedTime}, @service_code='{model.ServiceCode}', @user_mail='{model.UserMail}', @service_id={model.ServiceId}";
 
-        //    _context.Entry(service).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!ServiceExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+            var result = await connection.QueryAsync<string>(sqlcmd, new { model.Title } );
+            var fullResult = string.Concat(result);
+            if (fullResult == "Success")
+                return Ok(new ResponseDto { Status = "Success", Message = fullResult });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = fullResult });
+        }
 
         // POST: api/Services
         //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
