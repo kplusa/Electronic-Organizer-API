@@ -27,7 +27,7 @@ namespace Electronic_Organizer_API.Controllers
             _context = context;
         }
 
-        // Post: api/Services/list-services
+        // Post: api/EndUsers/
         [HttpPost]
         public async Task<IActionResult> GetPasswordExistance([FromBody] UserDto model)
         {
@@ -35,17 +35,17 @@ namespace Electronic_Organizer_API.Controllers
             using SqlConnection connection = new(_context.Database.GetConnectionString());
             var result = await connection.QueryAsync<string>(sqlcmd, new { Mail = model.UserMail });
             var fullResult = string.Concat(result);
-            if (int.Parse(result.First())==1)
+            if (int.Parse(result.First()) == 1)
                 return Ok(new ResponseDto { Status = "Success", Message = "Password exists" });
             else
                 return NoContent();
         }
-        // Post: api/Services/
+        // Post: api/EndUsers/set-password
         [HttpPost]
         [Route("set-password")]
         public async Task<IActionResult> SetPassword([FromBody] UserDto model)
         {
-            if(model.Password== model.OldPassword)
+            if (model.Password == model.OldPassword)
                 return BadRequest(new ResponseDto { Status = "Error", Message = "The changed password must be different." });
             string sqlcmd = $"EXEC eo_get_user_password_existence @email=@Mail";
             using SqlConnection connection = new(_context.Database.GetConnectionString());
@@ -77,10 +77,18 @@ namespace Electronic_Organizer_API.Controllers
             return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = "User not found" });
         }
 
-
-        
-
-       
-
+        // Post: api/EndUsers/set-avatar
+        [HttpPost]
+        [Route("set-avatar")]
+        public async Task<IActionResult> SetAvatar([FromBody] UserDto model)
+        {
+            string sqlcmd = "EXEC eo_set_avatar @user_mail=@Mail, @avatar=@Avatar";
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+            var result = await connection.QueryAsync<string>(sqlcmd, new { Mail = model.UserMail, Avatar = model.Avatar });
+            if (!result.Any())
+                return Ok(new ResponseDto { Status = "Success", Message = "Avatar changed successfully!" });
+            else
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = "Error when changing avatar." });
+        }
     }
 }
