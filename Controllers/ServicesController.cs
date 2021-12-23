@@ -72,17 +72,6 @@ namespace Electronic_Organizer_API.Controllers
             return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = fullResult });
         }
 
-        // POST: api/Services
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<Service>> PostService(Service service)
-        //{
-        //    _context.Services.Add(service);
-        //    await _context.SaveChangesAsync();
-
-        //    return CreatedAtAction("GetService", new { id = service.Id }, service);
-        //}
-
         // DELETE: api/Services/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteService(int id)
@@ -99,9 +88,5 @@ namespace Electronic_Organizer_API.Controllers
             return NoContent();
         }
 
-        private bool ServiceExists(int id)
-        {
-            return _context.Services.Any(e => e.Id == id);
-        }
     }
 }
