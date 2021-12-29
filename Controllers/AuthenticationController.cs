@@ -48,7 +48,6 @@ namespace Electronic_Organizer_API.Controllers
                 HashedPassword = hashed,
                 EndUserId = user.Id
             });
-            _context.Timetables.Add(new Timetable { EndUserId = user.Id });
             var result = await _context.SaveChangesAsync();
             if (result == 0)
                 return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = "User creation failed! Please check user details and try again." });
@@ -116,7 +115,6 @@ namespace Electronic_Organizer_API.Controllers
                         HashedPassword = null,
                         EndUserId = user.Id
                     });
-                    _context.Timetables.Add(new Timetable { EndUserId = user.Id });
                     var result = await _context.SaveChangesAsync();
                     if (result == 0)
                         return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = "User creation failed!" });

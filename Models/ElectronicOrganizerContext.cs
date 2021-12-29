@@ -16,48 +16,13 @@ namespace Electronic_Organizer_API.Models
         {
         }
 
-        public virtual DbSet<Day> Days { get; set; }
-        public virtual DbSet<DayOfTimetable> DayOfTimetables { get; set; }
         public virtual DbSet<EndUser> EndUsers { get; set; }
         public virtual DbSet<EndUserSecurity> EndUserSecurities { get; set; }
         public virtual DbSet<Event> Events { get; set; }
         public virtual DbSet<Service> Services { get; set; }
-        public virtual DbSet<Timetable> Timetables { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Day>(entity =>
-            {
-                entity.ToTable("day");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.Date).HasColumnName("date");
-            });
-
-            modelBuilder.Entity<DayOfTimetable>(entity =>
-            {
-                entity.ToTable("day_of_timetable");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.DayId).HasColumnName("day_id");
-
-                entity.Property(e => e.TimetableId).HasColumnName("timetable_id");
-
-                entity.HasOne(d => d.Day)
-                    .WithMany(p => p.DayOfTimetables)
-                    .HasForeignKey(d => d.DayId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__day_of_ti__day_i__55009F39");
-
-                entity.HasOne(d => d.Timetable)
-                    .WithMany(p => p.DayOfTimetables)
-                    .HasForeignKey(d => d.TimetableId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__day_of_ti__timet__55F4C372");
-            });
-
             modelBuilder.Entity<EndUser>(entity =>
             {
                 entity.ToTable("end_user");
@@ -109,9 +74,11 @@ namespace Electronic_Organizer_API.Models
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.DayOfTimetableId).HasColumnName("day_of_timetable_id");
+                entity.Property(e => e.Date).HasColumnName("date");
 
                 entity.Property(e => e.EndTime).HasColumnName("end_time");
+
+                entity.Property(e => e.EndUserId).HasColumnName("end_user_id");
 
                 entity.Property(e => e.ServiceId).HasColumnName("service_id");
 
@@ -122,16 +89,15 @@ namespace Electronic_Organizer_API.Models
                     .IsUnicode(false)
                     .HasColumnName("title");
 
-                entity.HasOne(d => d.DayOfTimetable)
+                entity.HasOne(d => d.EndUser)
                     .WithMany(p => p.Events)
-                    .HasForeignKey(d => d.DayOfTimetableId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__event__day_of_ti__5BAD9CC8");
+                    .HasForeignKey(d => d.EndUserId)
+                    .HasConstraintName("FK__event__end_user___11158940");
 
                 entity.HasOne(d => d.Service)
                     .WithMany(p => p.Events)
                     .HasForeignKey(d => d.ServiceId)
-                    .HasConstraintName("FK__event__service_i__5CA1C101");
+                    .HasConstraintName("FK__event__service_i__10216507");
             });
 
             modelBuilder.Entity<Service>(entity =>
@@ -159,21 +125,6 @@ namespace Electronic_Organizer_API.Models
                     .WithMany(p => p.Services)
                     .HasForeignKey(d => d.EndUserId)
                     .HasConstraintName("FK__service__end_use__74794A92");
-            });
-
-            modelBuilder.Entity<Timetable>(entity =>
-            {
-                entity.ToTable("timetable");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.EndUserId).HasColumnName("end_user_id");
-
-                entity.HasOne(d => d.EndUser)
-                    .WithMany(p => p.Timetables)
-                    .HasForeignKey(d => d.EndUserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__timetable__end_u__503BEA1C");
             });
 
             OnModelCreatingPartial(modelBuilder);
