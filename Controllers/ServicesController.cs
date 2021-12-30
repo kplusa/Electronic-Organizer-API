@@ -72,16 +72,18 @@ namespace Electronic_Organizer_API.Controllers
             return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = fullResult });
         }
 
-        // DELETE: api/Services/5
+        // DELETE: api/Services/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteService(int id)
         {
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
             var service = await _context.Services.FindAsync(id);
             if (service == null)
             {
                 return NotFound(new ResponseDto { Status = "Error", Message = "Service not found." });
             }
-
+            string sqlcmd = $"EXEC eo_services_update_after_delete @id=@Id";
+            var result = await connection.QueryAsync<string>(sqlcmd, new { Id=id });
             _context.Services.Remove(service);
             await _context.SaveChangesAsync();
 

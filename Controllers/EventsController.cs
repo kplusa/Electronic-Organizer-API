@@ -55,6 +55,34 @@ namespace Electronic_Organizer_API.Controllers
                 return Ok(new ResponseDto { Status = "Success", Message = "Successfully list services!", Data = fullResult });
             return NoContent();
         }
+
+        // Post: api/Events/
+        [HttpPost]
+        public async Task<IActionResult> AddEvent([FromBody] EventDto model)
+        {
+            string sqlcmd = $"EXEC eo_events_insert @title=@Title, @date= @Date, @start_time= @StartTime, @end_time= @EndTime, @user_mail=@Mail";
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+            var result = await connection.QueryAsync<string>(sqlcmd, new { Title = model.Title, Date = model.Date, StartTime = model.StartTime, EndTime = model.EndTime, Mail = model.UserMail });
+            var fullResult = string.Concat(result);
+
+            if (fullResult == "Success")
+                return Ok(new ResponseDto { Status = "Success", Message = fullResult });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = fullResult });
+        }
+
+        //PUT: api/Events/
+        [HttpPut]
+        public async Task<IActionResult> PutEvent([FromBody] EventDto model)
+        {
+            string sqlcmd = $"EXEC eo_events_update @title=@Title, @date= @Date, @start_time= @StartTime, @end_time= @EndTime, @user_mail=@Mail, @event_id={model.Id}";
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+            var result = await connection.QueryAsync<string>(sqlcmd, new { Title = model.Title, Date = model.Date, StartTime = model.StartTime, EndTime = model.EndTime, Mail = model.UserMail });
+            var fullResult = string.Concat(result);
+
+            if (fullResult == "Success")
+                return Ok(new ResponseDto { Status = "Success", Message = fullResult });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = fullResult });
+        }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteService(int id)
         {
