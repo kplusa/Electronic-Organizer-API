@@ -16,10 +16,10 @@ namespace Electronic_Organizer_API.Recognition
             var year = "2022";
             string[] lines;
             string newLineReg = "\n";
-            string firstWordReg = @"^([a-zA-Z]+)";
-            string eventReg = @"^([a-zA-Z]+)\s?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]\s?-\s?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
+            string firstWordReg = @"^([a-zA-Z\D+]+)";
+            string eventReg = @"^([a-zA-Z\D+]+)\s?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]\s?-\s?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
             string integerReg = @"\d+";
-            string startTimeReg = @"(([a-zA-Z]+)\s?)(.*)(\s?-\s?)";
+            string startTimeReg = @"(([a-zA-Z\D+]+)\s?)(.*)(\s?-\s?)";
             string endTimeReg = @"(\s?-\s?)(.*)";
             int count = 0;
 
