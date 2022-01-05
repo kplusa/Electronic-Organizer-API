@@ -96,5 +96,19 @@ namespace Electronic_Organizer_API.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpPost]
+        [Route("upcoming")]
+        public async Task<ActionResult<Event>> GetUpcomingEvent([FromBody] EventDto model)
+        {
+            string sqlcmd = "EXEC eo_get_upcoming_events @email=@Mail";
+            using SqlConnection connection = new(_context.Database.GetConnectionString());
+            var result = await connection.QueryAsync<string>(sqlcmd, new { Mail = model.UserMail });
+            var fullResult = string.Concat(result);
+            if (fullResult != "")
+                return Ok(new ResponseDto { Status = "Success", Message = "Successfully calculated", Data = fullResult });
+            return NoContent();
+        }
+
     }
 }
