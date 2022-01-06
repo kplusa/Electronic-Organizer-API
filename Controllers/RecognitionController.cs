@@ -24,7 +24,7 @@ namespace Electronic_Organizer_API.Controllers
             _context = context;
         }
 
-        // POST: api/Events
+        // POST: api/Recognition
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpGet]
         public async Task<IActionResult> GetRecognitionn()
@@ -37,30 +37,21 @@ namespace Electronic_Organizer_API.Controllers
             //foreach (var e in json)
             //{
             //    Console.WriteLine(e);
- 
+
             //}
             Console.WriteLine(json.responses[0].fullTextAnnotation.text);
-            return Ok(new ResponseDto { Status = "Success", Message = "Successfully recognized", Data= json.responses[0].fullTextAnnotation.text });
+            return Ok(new ResponseDto { Status = "Success", Message = "Successfully recognized", Data = json.responses[0].fullTextAnnotation.text });
         }
 
         [HttpPost]
         public IActionResult GetRecognition([FromBody] RecognitionDto model)
         {
-            //string sqlcmd = "exec eo_recignized_events_select";
-            //using SqlConnection connection = new(_context.Database.GetConnectionString());
-            //var result = await connection.QueryAsync<string>(sqlcmd);
-            //var fullResult = string.Concat(result);
-            //dynamic json = JObject.Parse(fullResult);
-            //foreach (var e in json)
-            //{
-            //    Console.WriteLine(e);
-
-            //}
-            //Console.WriteLine(json.responses[0].fullTextAnnotation.text);
             Console.WriteLine(model.RecognizedText);
             var result = EventRecognition.ShowAsJsonString(model.RecognizedText);
             Console.WriteLine(result);
-            return Ok(new ResponseDto { Status = "Success", Message = "Successfully recognized", Data = result });
+            if (result != "Error")
+                return Ok(new ResponseDto { Status = "Success", Message = "Successfully recognized", Data = result });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseDto { Status = "Error", Message = "An error occurred while recognizing text" });
         }
     }
 }
