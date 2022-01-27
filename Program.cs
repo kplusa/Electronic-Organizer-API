@@ -21,6 +21,7 @@ namespace Electronic_Organizer_API
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("https://localhost:5001","https://0.0.0.0:5001","http://0.0.0.0:5000");
                 });
     }
 }
